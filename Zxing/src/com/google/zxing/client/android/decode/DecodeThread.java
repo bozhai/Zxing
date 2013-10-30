@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.android;
+package com.google.zxing.client.android.decode;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.ResultPointCallback;
+import com.google.zxing.client.android.DecodeFormatManager;
+import com.google.zxing.client.android.PreferencesActivity;
+import com.google.zxing.client.android.decode.ui.CaptureActivity;
 
 import android.content.SharedPreferences;
 import android.os.Handler;

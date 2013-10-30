@@ -32,9 +32,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
-import com.google.zxing.client.android.CaptureActivity;
+
 import com.google.zxing.client.android.Intents;
 import com.google.zxing.client.android.R;
+import com.google.zxing.client.android.decode.ui.CaptureActivity;
 
 import java.util.List;
 

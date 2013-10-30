@@ -21,7 +21,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
-import com.google.zxing.client.android.Size;
+import com.google.zxing.client.android.entity.Size;
 
 final class PreviewCallback implements Camera.PreviewCallback {
 

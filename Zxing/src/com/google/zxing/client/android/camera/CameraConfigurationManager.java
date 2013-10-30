@@ -33,7 +33,7 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 
 import com.google.zxing.client.android.PreferencesActivity;
-import com.google.zxing.client.android.Size;
+import com.google.zxing.client.android.entity.Size;
 
 /**
  * A class which deals with reading, parsing, and setting the camera parameters

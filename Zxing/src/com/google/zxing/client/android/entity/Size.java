@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.google.zxing.client.android;
+package com.google.zxing.client.android.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;

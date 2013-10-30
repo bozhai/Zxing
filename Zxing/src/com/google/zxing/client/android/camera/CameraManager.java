@@ -26,8 +26,8 @@ import android.util.Log;
 import android.view.SurfaceHolder;
 
 import com.google.zxing.PlanarYUVLuminanceSource;
-import com.google.zxing.client.android.Size;
 import com.google.zxing.client.android.camera.open.OpenCameraManager;
+import com.google.zxing.client.android.entity.Size;
 
 /**
  * This object wraps the Camera service object and expects to be the only one
@@ -164,7 +164,7 @@ public final class CameraManager {
 
 	/**
 	 * Convenience method for
-	 * {@link com.google.zxing.client.android.CaptureActivity}
+	 * {@link com.google.zxing.client.android.decode.ui.CaptureActivity}
 	 */
 	public synchronized void setTorch(boolean newSetting) {
 		if (newSetting != mConfigManager.getTorchState(mCamera)) {
