@@ -16,11 +16,12 @@
 
 package com.google.zxing.client.android.camera;
 
-import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+
+import com.google.zxing.client.android.Size;
 
 final class PreviewCallback implements Camera.PreviewCallback {
 
@@ -41,11 +42,11 @@ final class PreviewCallback implements Camera.PreviewCallback {
 
   @Override
   public void onPreviewFrame(byte[] data, Camera camera) {
-    Point cameraResolution = configManager.getCameraResolution();
+    Size cameraSize = configManager.getCameraResolution();
     Handler thePreviewHandler = previewHandler;
-    if (cameraResolution != null && thePreviewHandler != null) {
-      Message message = thePreviewHandler.obtainMessage(previewMessage, cameraResolution.x,
-          cameraResolution.y, data);
+    if (cameraSize != null && thePreviewHandler != null) {
+      Message message = thePreviewHandler.obtainMessage(previewMessage, cameraSize.width,
+          cameraSize.height, data);
       message.sendToTarget();
       previewHandler = null;
     } else {

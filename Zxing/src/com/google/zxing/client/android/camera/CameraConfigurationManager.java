@@ -26,7 +26,6 @@ import java.util.List;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Point;
 import android.hardware.Camera;
 import android.os.Build;
 import android.preference.PreferenceManager;
@@ -50,16 +49,14 @@ final class CameraConfigurationManager {
 	// This prevents
 	// accidental selection of very low resolution on some devices.
 	private static final int MIN_PREVIEW_PIXELS = 470 * 320; // normal screen
-//	private static final int MAX_PREVIEW_PIXELS = 1280 * 800;
 	private static final int MAX_PREVIEW_PIXELS = 1920 * 1080;
 
-	private final Context context;
+	private final Context mContext;
 	private Size mScreenSize;
-//	private Point screenResolution;
-	private Point cameraResolution;
+	private Size mCameraSize;
 
-	CameraConfigurationManager(Context context) {
-		this.context = context;
+	public CameraConfigurationManager(Context context) {
+		this.mContext = context;
 	}
 
 	/**
@@ -68,48 +65,23 @@ final class CameraConfigurationManager {
 	void initFromCameraParameters(Camera camera) {
 		Camera.Parameters parameters = camera.getParameters();
 
-		DisplayMetrics dm = context.getResources().getDisplayMetrics();
+		DisplayMetrics dm = mContext.getResources().getDisplayMetrics();
 		int width = dm.widthPixels;
 		int height = dm.heightPixels;
 
-		// WindowManager manager = (WindowManager)
-		// context.getSystemService(Context.WINDOW_SERVICE);
-		// Display display = manager.getDefaultDisplay();
-		// int width = display.getWidth();
-		// int height = display.getHeight();
-		// We're landscape-only, and have apparently seen issues with display
-		// thinking it's portrait
-		// when waking from sleep. If it's not landscape, assume it's mistaken
-		// and reverse them:
-		if (width < height) {
-			Log.i(TAG, "Display reports portrait orientation; assuming this is incorrect");
-			int temp = width;
-			width = height;
-			height = temp;
-		}
 		mScreenSize = new Size(width, height);
-//		screenResolution = new Point(width, height);
 		Log.i(TAG, "Screen resolution: " + mScreenSize);
 
-		// Add to fix portrait
+		// Add to support portrait screen
 		Size screenSizeForCamera = new Size(mScreenSize);
-//		Point screenResolutionForCamera = new Point();
-//		screenResolutionForCamera.x = screenResolution.x;
-//		screenResolutionForCamera.y = screenResolution.y;
 		// preview size is always something like 480*320, other 320*480
 		if(screenSizeForCamera.width < screenSizeForCamera.height) {
 			screenSizeForCamera.exchange();
 		}
-//		if (screenResolution.x < screenResolution.y) {
-//			screenResolutionForCamera.x = screenResolution.y;
-//			screenResolutionForCamera.y = screenResolution.x;
-//		}
-		cameraResolution = findBestPreviewSizeValue(parameters, screenSizeForCamera);
-		// Fix portrait end
+		mCameraSize = findBestPreviewSizeValue(parameters, screenSizeForCamera);
+		// Add to support portrait screen end
 
-		// cameraResolution = findBestPreviewSizeValue(parameters, screenResolution);
-		Log.i(TAG, "Camera resolution: " + cameraResolution);
-
+		Log.i(TAG, "Camera resolution: " + mCameraSize);
 	}
 
 	@SuppressLint("NewApi")
@@ -117,39 +89,31 @@ final class CameraConfigurationManager {
 		Camera.Parameters parameters = camera.getParameters();
 
 		if (parameters == null) {
-			Log.w(TAG,
-					"Device error: no camera parameters are available. Proceeding without configuration.");
+			Log.w(TAG, "Device error: no camera parameters are available. Proceeding without configuration.");
 			return;
 		}
 
 		Log.i(TAG, "Initial camera parameters: " + parameters.flatten());
 
 		if (safeMode) {
-			Log.w(TAG,
-					"In camera config safe mode -- most settings will not be honored");
+			Log.w(TAG, "In camera config safe mode -- most settings will not be honored");
 		}
 
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(context);
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(mContext);
 
 		initializeTorch(parameters, prefs, safeMode);
 
 		String focusMode = null;
 		if (prefs.getBoolean(PreferencesActivity.KEY_AUTO_FOCUS, true)) {
 			if (safeMode
-					|| prefs.getBoolean(
-							PreferencesActivity.KEY_DISABLE_CONTINUOUS_FOCUS,
-							false)) {
-				focusMode = findSettableValue(
-						parameters.getSupportedFocusModes(),
+					|| prefs.getBoolean(PreferencesActivity.KEY_DISABLE_CONTINUOUS_FOCUS, false)) {
+				focusMode = findSettableValue(parameters.getSupportedFocusModes(),
 						Camera.Parameters.FOCUS_MODE_AUTO);
 			} else {
 				focusMode = findSettableValue(
 						parameters.getSupportedFocusModes(),
-						"continuous-picture", // Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE
-												// in 4.0+
-						"continuous-video", // Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO
-											// in 4.0+
+						"continuous-picture", // Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE in 4.0+
+						"continuous-video", // Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO in 4.0+
 						Camera.Parameters.FOCUS_MODE_AUTO);
 			}
 		}
@@ -172,20 +136,22 @@ final class CameraConfigurationManager {
 			}
 		}
 
-		parameters.setPreviewSize(cameraResolution.x, cameraResolution.y);
+		parameters.setPreviewSize(mCameraSize.width, mCameraSize.height);
+		// Add to support portrait screen
 		if(Build.VERSION.SDK_INT < Build.VERSION_CODES.FROYO) {
 			setDisplayOrientation(camera, 90);
 		} else {
 			camera.setDisplayOrientation(90);
 		}
+		//Add to support portrait screen
 		camera.setParameters(parameters);
 	}
 
-	Point getCameraResolution() {
-		return cameraResolution;
+	public Size getCameraResolution() {
+		return mCameraSize;
 	}
 
-	public Size getScreenResolution() {
+	public Size getScreenSize() {
 		return mScreenSize;
 	}
 
@@ -239,13 +205,19 @@ final class CameraConfigurationManager {
 		 */
 	}
 
-	private Point findBestPreviewSizeValue(Camera.Parameters parameters, Size screenSize) {
+	/**
+	 * Get best preview size.
+	 * @param parameters
+	 * @param screenSize
+	 * @return
+	 */
+	private Size findBestPreviewSizeValue(Camera.Parameters parameters, Size screenSize) {
 
 		List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
 		if (rawSupportedSizes == null) {
 			Log.w(TAG, "Device returned no supported preview sizes; using default");
 			Camera.Size defaultSize = parameters.getPreviewSize();
-			return new Point(defaultSize.width, defaultSize.height);
+			return new Size(defaultSize.width, defaultSize.height);
 		}
 
 		// Sort by size, descending
@@ -270,7 +242,7 @@ final class CameraConfigurationManager {
 			Log.i(TAG, "Supported preview sizes: " + previewSizesString);
 		}
 
-		Point bestSize = null;
+		Size bestSize = null;
 		float screenAspectRatio = (float) screenSize.width / (float) screenSize.height;
 
 		float diff = Float.POSITIVE_INFINITY;
@@ -287,23 +259,23 @@ final class CameraConfigurationManager {
 			int maybeFlippedHeight = isCandidatePortrait ? realWidth
 					: realHeight;
 			if (maybeFlippedWidth == screenSize.width && maybeFlippedHeight == screenSize.height) {
-				Point exactPoint = new Point(realWidth, realHeight);
+				Size exactSize = new Size(realWidth, realHeight);
 				Log.i(TAG, "Found preview size exactly matching screen size: "
-						+ exactPoint);
-				return exactPoint;
+						+ exactSize);
+				return exactSize;
 			}
 			float aspectRatio = (float) maybeFlippedWidth
 					/ (float) maybeFlippedHeight;
 			float newDiff = Math.abs(aspectRatio - screenAspectRatio);
 			if (newDiff < diff) {
-				bestSize = new Point(realWidth, realHeight);
+				bestSize = new Size(realWidth, realHeight);
 				diff = newDiff;
 			}
 		}
 
 		if (bestSize == null) {
 			Camera.Size defaultSize = parameters.getPreviewSize();
-			bestSize = new Point(defaultSize.width, defaultSize.height);
+			bestSize = new Size(defaultSize.width, defaultSize.height);
 			Log.i(TAG, "No suitable preview sizes, using default: " + bestSize);
 		}
 
