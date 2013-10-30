@@ -37,7 +37,6 @@ import com.google.zxing.BarcodeFormat;
 import com.google.zxing.DecodeHintType;
 import com.google.zxing.Result;
 import com.google.zxing.client.android.R;
-import com.google.zxing.client.android.ViewfinderResultPointCallback;
 import com.google.zxing.client.android.camera.CameraManager;
 import com.google.zxing.client.android.decode.ui.CaptureActivity;
 

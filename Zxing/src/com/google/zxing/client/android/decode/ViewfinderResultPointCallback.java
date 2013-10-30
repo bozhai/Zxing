@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.google.zxing.client.android;
+package com.google.zxing.client.android.decode;
 
 import com.google.zxing.ResultPoint;
 import com.google.zxing.ResultPointCallback;
+import com.google.zxing.client.android.decode.widget.ViewfinderView;
 
 public final class ViewfinderResultPointCallback implements ResultPointCallback {
 
