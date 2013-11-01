@@ -84,7 +84,7 @@ final class DecodeHandler extends Handler {
 		byte[] rotatedData = new byte[data.length];
 		for (int y = 0; y < height; y++) {
 			for (int x = 0; x < width; x++) {
-				rotatedData[x * height + height - y - 1] = data[y * width + x];
+				rotatedData[x * height + height - 1 - y] = data[y * width + x];
 			}
 		}
 		int tmp = width; // Here we are swapping, that's the difference to #11
@@ -112,8 +112,7 @@ final class DecodeHandler extends Handler {
 			long end = System.currentTimeMillis();
 			Log.d(TAG, "Found barcode in " + (end - start) + " ms");
 			if (handler != null) {
-				Message message = Message.obtain(handler,
-						R.id.decode_succeeded, rawResult);
+				Message message = Message.obtain(handler, R.id.decode_succeeded, rawResult);
 				Bundle bundle = new Bundle();
 				bundleThumbnail(source, bundle);
 				message.setData(bundle);
@@ -127,18 +126,15 @@ final class DecodeHandler extends Handler {
 		}
 	}
 
-	private static void bundleThumbnail(PlanarYUVLuminanceSource source,
-			Bundle bundle) {
+	private static void bundleThumbnail(PlanarYUVLuminanceSource source, Bundle bundle) {
 		int[] pixels = source.renderThumbnail();
 		int width = source.getThumbnailWidth();
 		int height = source.getThumbnailHeight();
-		Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height,
-				Bitmap.Config.ARGB_8888);
+		Bitmap bitmap = Bitmap.createBitmap(pixels, 0, width, width, height, Bitmap.Config.ARGB_8888);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		bitmap.compress(Bitmap.CompressFormat.JPEG, 50, out);
 		bundle.putByteArray(DecodeThread.BARCODE_BITMAP, out.toByteArray());
-		bundle.putFloat(DecodeThread.BARCODE_SCALED_FACTOR, (float) width
-				/ source.getWidth());
+		bundle.putFloat(DecodeThread.BARCODE_SCALED_FACTOR, (float) width / source.getWidth());
 	}
 
 }

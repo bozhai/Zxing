@@ -98,8 +98,7 @@ public final class CaptureActivityHandler extends Handler {
 					// Mutable copy:
 					barcode = barcode.copy(Bitmap.Config.ARGB_8888, true);
 				}
-				scaleFactor = bundle
-						.getFloat(DecodeThread.BARCODE_SCALED_FACTOR);
+				scaleFactor = bundle.getFloat(DecodeThread.BARCODE_SCALED_FACTOR);
 			}
 			activity.handleDecode((Result) message.obj, barcode, scaleFactor);
 			break;
