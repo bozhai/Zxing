@@ -90,8 +90,7 @@ public final class CaptureActivityHandler extends Handler {
 			Bitmap barcode = null;
 			float scaleFactor = 1.0f;
 			if (bundle != null) {
-				byte[] compressedBitmap = bundle
-						.getByteArray(DecodeThread.BARCODE_BITMAP);
+				byte[] compressedBitmap = bundle.getByteArray(DecodeThread.BARCODE_BITMAP);
 				if (compressedBitmap != null) {
 					barcode = BitmapFactory.decodeByteArray(compressedBitmap,
 							0, compressedBitmap.length, null);

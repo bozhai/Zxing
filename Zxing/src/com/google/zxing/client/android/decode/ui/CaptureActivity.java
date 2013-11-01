@@ -76,6 +76,7 @@ import com.google.zxing.client.android.ScanFromWebPageManager;
 import com.google.zxing.client.android.camera.CameraManager;
 import com.google.zxing.client.android.decode.CaptureActivityHandler;
 import com.google.zxing.client.android.decode.widget.ViewfinderView;
+import com.google.zxing.client.android.encode.EncodeActivity;
 import com.google.zxing.client.android.history.HistoryActivity;
 import com.google.zxing.client.android.history.HistoryItem;
 import com.google.zxing.client.android.history.HistoryManager;
@@ -355,7 +356,8 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
         startActivity(intent);
         break;
       case R.id.menu_help:
-        intent.setClassName(this, HelpActivity.class.getName());
+//        intent.setClassName(this, HelpActivity.class.getName());
+        intent.setClassName(this, EncodeActivity.class.getName());
         startActivity(intent);
         break;
       default:
