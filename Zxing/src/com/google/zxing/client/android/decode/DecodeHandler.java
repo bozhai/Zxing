@@ -40,19 +40,19 @@ final class DecodeHandler extends Handler {
 
 	private static final String TAG = DecodeHandler.class.getSimpleName();
 
-	private final CaptureActivity activity;
-	private final MultiFormatReader multiFormatReader;
-	private boolean running = true;
+	private final CaptureActivity mActivity;
+	private final MultiFormatReader mMultiFormatReader;
+	private boolean mIsRunning = true;	
 
-	DecodeHandler(CaptureActivity activity, Map<DecodeHintType, Object> hints) {
-		multiFormatReader = new MultiFormatReader();
-		multiFormatReader.setHints(hints);
-		this.activity = activity;
+	public DecodeHandler(CaptureActivity activity, Map<DecodeHintType, Object> hints) {
+		mMultiFormatReader = new MultiFormatReader();
+		mMultiFormatReader.setHints(hints);
+		this.mActivity = activity;
 	}
 
 	@Override
 	public void handleMessage(Message message) {
-		if (!running) {
+		if (!mIsRunning) {
 			return;
 		}
 		switch (message.what) {
@@ -60,7 +60,7 @@ final class DecodeHandler extends Handler {
 			decode((byte[]) message.obj, message.arg1, message.arg2);
 			break;
 		case R.id.quit:
-			running = false;
+			mIsRunning = false;
 			Looper.myLooper().quit();
 			break;
 		}
@@ -71,46 +71,42 @@ final class DecodeHandler extends Handler {
 	 * took. For efficiency, reuse the same reader objects from one decode to
 	 * the next.
 	 * 
-	 * @param data
-	 *            The YUV preview frame.
-	 * @param width
-	 *            The width of the preview frame.
-	 * @param height
-	 *            The height of the preview frame.
+	 * @param data The YUV preview frame.
+	 * @param width The width of the preview frame.
+	 * @param height The height of the preview frame.
 	 */
 	private void decode(byte[] data, int width, int height) {
 		long start = System.currentTimeMillis();
 		Result rawResult = null;
 
 		// Add to fix portrait
+		//Rotate landscape data to portrait data.
 		byte[] rotatedData = new byte[data.length];
 		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++)
-				rotatedData[x * height + height - y - 1] = data[x + y * width];
+			for (int x = 0; x < width; x++) {
+				rotatedData[x * height + height - y - 1] = data[y * width + x];
+			}
 		}
 		int tmp = width; // Here we are swapping, that's the difference to #11
 		width = height;
 		height = tmp;
 
-		PlanarYUVLuminanceSource source = activity.getCameraManager()
-				.buildLuminanceSource(rotatedData, width, height);
+		PlanarYUVLuminanceSource source = mActivity.getCameraManager().buildLuminanceSource(rotatedData, width, height);
 		// Add to fix portrait end
 
-		// PlanarYUVLuminanceSource source =
-		// activity.getCameraManager().buildLuminanceSource(data, width,
-		// height);
+		// PlanarYUVLuminanceSource source = activity.getCameraManager().buildLuminanceSource(data, width, height);
 		if (source != null) {
 			BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
 			try {
-				rawResult = multiFormatReader.decodeWithState(bitmap);
+				rawResult = mMultiFormatReader.decodeWithState(bitmap);
 			} catch (ReaderException re) {
 				// continue
 			} finally {
-				multiFormatReader.reset();
+				mMultiFormatReader.reset();
 			}
 		}
 
-		Handler handler = activity.getHandler();
+		Handler handler = mActivity.getHandler();
 		if (rawResult != null) {
 			// Don't log the barcode contents for security.
 			long end = System.currentTimeMillis();
